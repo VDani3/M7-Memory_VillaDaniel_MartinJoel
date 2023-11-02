@@ -4,12 +4,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
 public class ChatServer extends WebSocketServer {
+    
+    List<String> clientsId = new ArrayList<>();
+    List<String> clientsName = new ArrayList<>();
 
     static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
@@ -32,34 +38,33 @@ public class ChatServer extends WebSocketServer {
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         // Quan un client es connecta
         String clientId = getConnectionId(conn);
+        clientsId.add(clientId);
 
-        // Saludem personalment al nou client
-        JSONObject objWlc = new JSONObject("{}");
-        objWlc.put("type", "private");
-        objWlc.put("from", "server");
-        objWlc.put("value", "Welcome to the chat server");
-        conn.send(objWlc.toString()); 
+        //Quan son 2 ja poden començar la partida
+        if (clientsId.size() == 2) {
+            //Mandar missatge al primer client
+            JSONObject playersId = new JSONObject("{}");
+            playersId.put("type", "id");
+            playersId.put("can", true);
+            playersId.put("me", clientsId.get(0));
+            playersId.put("enemy", clientsId.get(1));
+            playersId.put("enemyName", clientsName.get(1));
 
-        // Li enviem el seu identificador
-        JSONObject objId = new JSONObject("{}");
-        objId.put("type", "id");
-        objId.put("from", "server");
-        objId.put("value", clientId);
-        conn.send(objId.toString()); 
+            WebSocket ws = getClientById(clientsId.get(0));
+            ws.send(playersId.toString());
 
-        // Enviem al client la llista amb tots els clients connectats
-        sendList(conn);
+            //Mandar missatge al segon client
+            JSONObject playersId2 = new JSONObject("{}");
+            playersId2.put("type", "id");
+            playersId2.put("can", false);
+            playersId2.put("me", clientsId.get(1));
+            playersId2.put("enemy", clientsId.get(0));
+            playersId2.put("enemyName", clientsName.get(0));
 
-        // Enviem la direcció URI del nou client a tothom 
-        JSONObject objCln = new JSONObject("{}");
-        objCln.put("type", "connected");
-        objCln.put("from", "server");
-        objCln.put("id", clientId);
-        broadcast(objCln.toString());
-
-        // Mostrem per pantalla (servidor) la nova connexió
-        String host = conn.getRemoteSocketAddress().getAddress().getHostAddress();
-        System.out.println("New client (" + clientId + "): " + host);
+            WebSocket ws2 = getClientById(clientsId.get(1));
+            ws2.send(playersId2.toString());
+            clientsId.clear();
+        }
     }
 
     @Override
@@ -86,36 +91,11 @@ public class ChatServer extends WebSocketServer {
             JSONObject objRequest = new JSONObject(message);
             String type = objRequest.getString("type");
 
-            if (type.equalsIgnoreCase("list")) {
-                // El client demana la llista de tots els clients
-                System.out.println("Client '" + clientId + "'' requests list of clients");
-                sendList(conn);
-
-            } else if (type.equalsIgnoreCase("private")) {
-                // El client envia un missatge privat a un altre client
-                System.out.println("Client '" + clientId + "'' sends a private message");
-
-                JSONObject objResponse = new JSONObject("{}");
-                objResponse.put("type", "private");
-                objResponse.put("from", clientId);
-                objResponse.put("value", objRequest.getString("value"));
-
-                String destination = objRequest.getString("destination");
-                WebSocket desti = getClientById(destination);
-
-                if (desti != null) {
-                    desti.send(objResponse.toString()); 
-                }
-                
-            } else if (type.equalsIgnoreCase("broadcast")) {
-                // El client envia un missatge a tots els clients
-                System.out.println("Client '" + clientId + "'' sends a broadcast message to everyone");
-
-                JSONObject objResponse = new JSONObject("{}");
-                objResponse.put("type", "broadcast");
-                objResponse.put("from", clientId);
-                objResponse.put("value", objRequest.getString("value"));
-                broadcast(objResponse.toString());
+            if (type == "name") {
+                clientsName.add(objRequest.getString("value"));
+            } else if (type == "move") {
+                WebSocket wb = getClientById(objRequest.getString("enemy"));
+                wb.send(message);
             }
 
         } catch (Exception e) {

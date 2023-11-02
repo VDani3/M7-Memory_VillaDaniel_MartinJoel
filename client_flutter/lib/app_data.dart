@@ -18,6 +18,7 @@ enum ConnectionStatus {
 class AppData with ChangeNotifier {
   String ip = "localhost";
   String port = "8888";
+  String name = "Messi";
 
   IOWebSocketChannel? _socketClient;
   ConnectionStatus connectionStatus = ConnectionStatus.disconnected;
@@ -63,40 +64,21 @@ class AppData with ChangeNotifier {
       (message) {
         final data = jsonDecode(message);
 
-        if (connectionStatus != ConnectionStatus.connected) {
-          connectionStatus = ConnectionStatus.connected;
-        }
-
         switch (data['type']) {
-          case 'list':
-            clients = (data['list'] as List).map((e) => e.toString()).toList();
-            clients.remove(mySocketId);
-            messages += "List of clients: ${data['list']}\n";
-            break;
           case 'id':
-            mySocketId = data['value'];
-            messages += "Id received: ${data['value']}\n";
+            playersId.add(data['me']);
+            playersId.add(data['enemy']);
+            meActivePlayer = data['can'];
             break;
-          case 'connected':
-            clients.add(data['id']);
-            clients.remove(mySocketId);
-            messages += "Connected client: ${data['id']}\n";
-            break;
-          case 'disconnected':
-            String removeId = data['id'];
-            if (selectedClient == removeId) {
-              selectedClient = "";
-            }
-            clients.remove(data['id']);
-            messages += "Disconnected client: ${data['id']}\n";
-            break;
-          case 'private':
-            messages +=
-                "Private message from '${data['from']}': ${data['value']}\n";
+          case 'name':
+            playersName.add(data['name']);
             break;
           default:
             messages += "Message from '${data['from']}': ${data['value']}\n";
             break;
+        }
+        if (connectionStatus != ConnectionStatus.connected && playersId != 2) {
+          connectionStatus = ConnectionStatus.connected;
         }
 
         notifyListeners();
@@ -237,5 +219,46 @@ class AppData with ChangeNotifier {
       file_loading = false;
       notifyListeners();
     }
+  }
+
+  //Memory
+  List<String> playersName = ["Mei", "ho"];
+  List<String> playersId = [];
+  List<int> playersScore = [0, 0]; 
+  int torn = 0;
+  int waiting = 1;
+  bool meActivePlayer = true;
+
+  //Lista de imagenes
+  List<String>? gameImages;    //Aqui se pondran las fotos actuales de cada casilla
+  final List<String> cardFotos = [
+    'assets/images/iniesta.png',
+    'assets/images/iniesta.png',
+    'assets/images/villaIniesta.png',
+    'assets/images/villaIniesta.png',
+    'assets/images/villaIniestaKobe.png',
+    'assets/images/villaIniestaKobe.png',
+    'assets/images/villaIniestaJapan.png',
+    'assets/images/villaIniestaJapan.png',
+  ];
+  //Para ver si las dos primeras clicadas son iguales o no
+  List<Map<int, String>> pairCheck = [];
+  final String interrogantePath = 'assets/images/hidden.png';
+  final int cardCount = 8;
+
+  void initializeGame() {
+    gameImages = List.generate(cardCount, (index) => interrogantePath);
+  }
+
+  void setName(String name, String name2) {
+    playersName.add(name);
+    playersName.add(name2);
+    notifyListeners();
+  }
+
+  void changeRound() {
+    int c = torn;
+    torn = 0+waiting;
+    waiting = 0+c;
   }
 }
