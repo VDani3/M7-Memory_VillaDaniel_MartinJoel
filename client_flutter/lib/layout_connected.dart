@@ -23,7 +23,6 @@ class _LayoutConnectedState extends State<LayoutConnected> {
   @override
   void initState() {
     super.initState();
-    _game.initializeGame();
   }
 
   @override
@@ -90,6 +89,7 @@ class _LayoutConnectedState extends State<LayoutConnected> {
 
   void boldCard(int index, AppData data) {
     if (canPlay && data.gameImages![index] == data.interrogantePath) {
+      data.send
       setState(() {
         data.gameImages![index] = data.cardFotos[index];
         data.pairCheck.add({index: data.cardFotos[index]});

@@ -65,6 +65,8 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
                   appData.ip = _ipController.text;
                   appData.port = _portController.text;
                   appData.name = _name.text;
+                  appData.playersName = [];
+                  appData.playersName.add(_name.text);
                   appData.connectToServer();
                 },
                 padding: EdgeInsets.zero,

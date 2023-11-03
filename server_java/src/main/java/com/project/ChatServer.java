@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -42,6 +43,9 @@ public class ChatServer extends WebSocketServer {
 
         //Quan son 2 ja poden començar la partida
         if (clientsId.size() == 2) {
+            //Lista de cartas
+            List<Integer> cards = randomCards(8);
+
             //Mandar missatge al primer client
             JSONObject playersId = new JSONObject("{}");
             playersId.put("type", "id");
@@ -49,6 +53,7 @@ public class ChatServer extends WebSocketServer {
             playersId.put("me", clientsId.get(0));
             playersId.put("enemy", clientsId.get(1));
             playersId.put("enemyName", clientsName.get(1));
+            playersId.put("cards", cards);
 
             WebSocket ws = getClientById(clientsId.get(0));
             ws.send(playersId.toString());
@@ -60,11 +65,33 @@ public class ChatServer extends WebSocketServer {
             playersId2.put("me", clientsId.get(1));
             playersId2.put("enemy", clientsId.get(0));
             playersId2.put("enemyName", clientsName.get(0));
+            playersId2.put("cards", cards);
 
             WebSocket ws2 = getClientById(clientsId.get(1));
             ws2.send(playersId2.toString());
             clientsId.clear();
+            clientsName.clear();
         }
+    }
+
+    //Generar les cartes
+    public static List<Integer> randomCards(int numCards){
+        List<Integer> numList = new ArrayList<Integer>();
+        List<Integer> result = new ArrayList<Integer>();
+        Random r = new Random();
+        //Numeros
+        for (int i = 0; i<numCards; i++) {
+            for (int v = 0; v<2; v++) {
+                numList.add(i);
+            }
+        }
+        //RandomizarLista
+        for (int i = 0; i < numList.size(); i++) {
+            int num = r.nextInt(numList.size());
+            result.add(numList.get(num));
+            numList.remove(num);
+        }
+        return result;
     }
 
     @Override

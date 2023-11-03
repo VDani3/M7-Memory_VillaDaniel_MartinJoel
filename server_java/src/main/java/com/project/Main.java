@@ -14,12 +14,12 @@ import java.util.Enumeration;
 
     From client to server:
         - Player name           { "type": "name", "value": "Po"}
-        - Player move           { "type": "move", "can": false, "enemy": "002", "sumP": 1, "cards": []}
+        - Player move           { "type": "move", "can": false, "enemy": "002", "sumP": 1, "card id": 5}
 
 
     From server to client:
-        - On find match         { "type": "id", "can": true, "me": "001", "enemy": "002", "enemyName": PP}
-        - Player move           { "type": "move", "can": false, "enemy": "002", "sumP":, "cards": []}
+        - On find match         { "type": "id", "can": true, "me": "001", "enemy": "002", "enemyName": PP, "cards": []}
+        - Player move           { "type": "move", "can": false, "enemy": "002", "sumP":, "cardId": 5}
 
  */
 
