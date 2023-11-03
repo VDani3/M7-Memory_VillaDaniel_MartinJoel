@@ -36,6 +36,10 @@ class AppData with ChangeNotifier {
     _getLocalIpAddress();
   }
 
+  void initialize() {
+    gameImages = List.generate(cardCount, (index) => interrogantePath);
+  }
+
   void _getLocalIpAddress() async {
     try {
       final List<NetworkInterface> interfaces = await NetworkInterface.list(
@@ -60,7 +64,7 @@ class AppData with ChangeNotifier {
     await Future.delayed(const Duration(seconds: 1));
 
     _socketClient = IOWebSocketChannel.connect("ws://$ip:$port");
-    _socketClient?.sink.add('{"name": "${playersName[0]}"}');
+    _socketClient?.sink.add('{"type": "name", "value": "${playersName[0]}"}');
     _socketClient!.stream.listen(
       (message) {
         final data = jsonDecode(message);
@@ -70,8 +74,8 @@ class AppData with ChangeNotifier {
             playersId.add(data['me']);
             playersId.add(data['enemy']);
             meActivePlayer = data['can'];
-            playersName.add(data['enemyName']);
-            gameImages = setGameImages(data['cards']);
+            //playersName.add(data['enemyName']);
+            cardFotos = setGameImages(data['cards']);
             break;
           case 'name':
             playersName.add(data['name']);
@@ -225,29 +229,32 @@ class AppData with ChangeNotifier {
   }
 
   //Memory
-  List<String> playersName = [];
+  List<String> playersName = ["h", "o"];
   List<String> playersId = [];
-  List<int> playersScore = [0, 0]; 
+  List<int> playersScore = [0, 0];
   int torn = 0;
   int waiting = 1;
   bool meActivePlayer = true;
 
   //Lista de imagenes
-  List<String>? gameImages;    //Aqui se pondran las fotos actuales de cada casilla
-  final List<String> cardFotos = [
+  List<String>? gameImages; //Aqui se pondran las fotos actuales de cada casilla
+  //Las fotos que hay
+  List<String> cardFotos = [
     'assets/images/iniesta.png',
     'assets/images/villaIniesta.png',
     'assets/images/villaIniestaKobe.png',
     'assets/images/villaIniestaJapan.png',
     'assets/images/iniestaCopa.png',
-    'assets/images/munyeco.png',
+    'assets/images/munyeco.jpg',
     'assets/images/villaKobe.png',
     'assets/images/villaSpain.png',
   ];
+  
+
   //Para ver si las dos primeras clicadas son iguales o no
   List<Map<int, String>> pairCheck = [];
   final String interrogantePath = 'assets/images/hidden.png';
-  final int cardCount = 8;
+  final int cardCount = 16;
 
   void setName(String name, String name2) {
     playersName.add(name);
@@ -257,15 +264,16 @@ class AppData with ChangeNotifier {
 
   void changeRound() {
     int c = torn;
-    torn = 0+waiting;
-    waiting = 0+c;
+    torn = 0 + waiting;
+    waiting = 0 + c;
   }
 
-  List<String> setGameImages(List<int> indexCards) {
-    List<String> result = new List.empty();
+  List<String> setGameImages(List<dynamic> indexCards) {
+    List<String> result = [];
 
-    for (int card in indexCards) {
-      result.add(cardFotos[card]);
+    for (int i = 0; i < indexCards.length; i++) {
+      int carta = indexCards[i] as int;
+      result.add(cardFotos[carta]);
     }
 
     return result;

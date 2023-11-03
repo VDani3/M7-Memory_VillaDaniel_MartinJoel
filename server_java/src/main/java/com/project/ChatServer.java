@@ -52,7 +52,7 @@ public class ChatServer extends WebSocketServer {
             playersId.put("can", true);
             playersId.put("me", clientsId.get(0));
             playersId.put("enemy", clientsId.get(1));
-            playersId.put("enemyName", clientsName.get(1));
+            //playersId.put("enemyName", clientsName.get(1));
             playersId.put("cards", cards);
 
             WebSocket ws = getClientById(clientsId.get(0));
@@ -64,7 +64,7 @@ public class ChatServer extends WebSocketServer {
             playersId2.put("can", false);
             playersId2.put("me", clientsId.get(1));
             playersId2.put("enemy", clientsId.get(0));
-            playersId2.put("enemyName", clientsName.get(0));
+            //playersId2.put("enemyName", clientsName.get(0));
             playersId2.put("cards", cards);
 
             WebSocket ws2 = getClientById(clientsId.get(1));
