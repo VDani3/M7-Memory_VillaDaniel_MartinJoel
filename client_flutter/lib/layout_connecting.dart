@@ -17,7 +17,7 @@ class LayoutConnecting extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Connecting...",
+                "Buscant partida...",
                 style: TextStyle(
                   fontSize: 14,
                   color: Color.fromRGBO(0, 200, 0, 1),

@@ -1,3 +1,4 @@
+import 'package:animated_rotation/animated_rotation.dart' as animated_rotation;
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'app_data.dart';
@@ -39,12 +40,13 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
   @override
   Widget build(BuildContext context) {
     AppData appData = Provider.of<AppData>(context);
-
+    String name = appData.defaultNames[appData.r.nextInt(appData.defaultNames.length)];
+    double turn = 0;
     _ipController.text = appData.ip;
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text("WebSockets Client"),
+        middle: Text("Lobby"),
       ),
       child: ListView(
         padding: const EdgeInsets.all(20),
@@ -54,7 +56,33 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
           const SizedBox(height: 20),
           _buildTextFormField("Server port", appData.port, _portController),
           const SizedBox(height: 20),
-          _buildTextFormField("Name", appData.name, _name),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildTextFormField("Name", name, _name),
+              SizedBox(width: 10,),
+              Column(
+                children: [
+                  SizedBox(height: 20,),
+                  GestureDetector(
+                    child: animated_rotation.AnimatedRotation(
+                      angle: turn,
+                      duration: Duration(seconds: 2),
+                      child: Icon(CupertinoIcons.arrow_2_circlepath)
+                    ),
+                    onTap: () {
+                      setState(() {
+                        turn += 45;
+                        name = appData.defaultNames[appData.r.nextInt(appData.defaultNames.length)];
+                      });
+                    },
+                  ),
+                ],
+              )
+              
+            ],
+          ),
           const SizedBox(height: 20),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             SizedBox(
@@ -62,6 +90,7 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
               height: 32,
               child: CupertinoButton.filled(
                 onPressed: () {
+                  appData.restart();
                   appData.ip = _ipController.text;
                   appData.port = _portController.text;
                   appData.name = _name.text;

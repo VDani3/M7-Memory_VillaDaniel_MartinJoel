@@ -7,6 +7,7 @@ Widget scorePanel(String titulo, String score, bool playing) {
 
   return Container(
       constraints: BoxConstraints(
+        minWidth: 100,
         maxWidth: 500.0, 
       ),
       margin: EdgeInsets.all(8),

@@ -17,23 +17,35 @@ class _LayoutConnectedState extends State<LayoutConnected> {
   final _messageController = TextEditingController();
   final FocusNode _messageFocusNode = FocusNode();
 
-  bool canPlay = true;
-  AppData _game = AppData();
-
   @override
   void initState() {
     super.initState();
-    _game.initialize();
   }
 
   @override
   Widget build(BuildContext context) {
     AppData appData = Provider.of<AppData>(context);
-    _game.cardFotos = appData.cardFotos;
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        padding: EdgeInsetsDirectional.all(4),
+        leading: GestureDetector(
+          child: Container(
+            padding: EdgeInsets.all(6),
+            child: Icon(CupertinoIcons.back, color: CupertinoColors.activeBlue, size: 22,),
+            decoration: BoxDecoration(
+              color: CupertinoColors.white,
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+              boxShadow: [BoxShadow(
+                color: CupertinoColors.black,
+                blurRadius: 70,
+                spreadRadius: 2
+              )]
+            ),
+          ),
+        ),
         middle: Text(
           'Memory',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -47,38 +59,46 @@ class _LayoutConnectedState extends State<LayoutConnected> {
               height: 50,
             ),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                scorePanel(_game.playersName[0],
-                    _game.playersScore[0].toString(), _game.meActivePlayer),
-                scorePanel(_game.playersName[1],
-                    _game.playersScore[1].toString(), !_game.meActivePlayer)
+                scorePanel(appData.playersName[0],
+                    appData.playersScore[0].toString(), appData.meActivePlayer),
+                scorePanel(appData.playersName[1],
+                    appData.playersScore[1].toString(), !appData.meActivePlayer)
               ],
             ),
-            SizedBox(
-              height: screenWidth / 2,
-              width: screenWidth / 2,
+            Container(
+              constraints: BoxConstraints(
+                maxWidth: 500,
+                maxHeight: 500,
+              ),
               child: GridView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemCount: _game.gameImages!.length,
+                  itemCount: appData.gameImages!.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4,
                       crossAxisSpacing: 16,
-                      mainAxisSpacing: 16),
+                      mainAxisSpacing: 16,
+                  ),
                   padding: EdgeInsets.all(16),
                   itemBuilder: (context, index) {
                     return GestureDetector(
                       onTap: () {
-                        boldCard(index, _game);
+                        setState(() {
+                          appData.boldCard(index);
+                        });
                       },
                       child: Container(
                           padding: EdgeInsets.all(16),
                           decoration: BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(8)),
-                              color: const Color.fromARGB(255, 138, 202, 255),
+                              gradient: RadialGradient(colors: [CupertinoColors.activeBlue, CupertinoColors.systemCyan]),
                               image: DecorationImage(
-                                  image: AssetImage(_game.gameImages![index]),
-                                  fit: BoxFit.cover))),
+                                  image: AssetImage(appData.gameImages![index]),
+                                  fit: BoxFit.cover)
+                          )
+                      ),
                     );
                   }),
             )
@@ -87,18 +107,18 @@ class _LayoutConnectedState extends State<LayoutConnected> {
   }
 
   void boldCard(int index, AppData data) {
-    if (canPlay && data.gameImages![index] == data.interrogantePath) {
+    if (data.meActivePlayer && data.gameImages![index] == data.interrogantePath) {
       //data.send
       setState(() {
         data.gameImages![index] = data.cardFotos[index];
         data.pairCheck.add({index: data.cardFotos[index]});
       });
       if (data.pairCheck.length >= 2) {
-        canPlay = false;
+        data.meActivePlayer = false;
         if (data.pairCheck[0].values.first == data.pairCheck[1].values.first) {
           data.playersScore[data.torn] += 1;
           data.pairCheck.clear();
-          canPlay = true;
+          data.meActivePlayer = true;
         } else {
           Future.delayed(Duration(milliseconds: 600), () {
             setState(() {
@@ -108,9 +128,10 @@ class _LayoutConnectedState extends State<LayoutConnected> {
                   data.interrogantePath;
               data.pairCheck.clear();
               data.changeRound();
-              data.meActivePlayer = !data.meActivePlayer;
+              data.meActivePlayer = false;
             });
-            canPlay = true;
+            //Canvi de torn
+            data.changeRoundMessage();
           });
         }
       }

@@ -40,9 +40,11 @@ public class ChatServer extends WebSocketServer {
         // Quan un client es connecta
         String clientId = getConnectionId(conn);
         clientsId.add(clientId);
+    }
 
+    public void createGame() {
         //Quan son 2 ja poden començar la partida
-        if (clientsId.size() == 2) {
+        if (clientsId.size() == 2 && clientsName.size() == 2) {
             //Lista de cartas
             List<Integer> cards = randomCards(8);
 
@@ -52,8 +54,10 @@ public class ChatServer extends WebSocketServer {
             playersId.put("can", true);
             playersId.put("me", clientsId.get(0));
             playersId.put("enemy", clientsId.get(1));
-            //playersId.put("enemyName", clientsName.get(1));
+            playersId.put("enemyName", clientsName.get(1));
             playersId.put("cards", cards);
+            playersId.put("torn", 0);
+            playersId.put("waiting", 1);
 
             WebSocket ws = getClientById(clientsId.get(0));
             ws.send(playersId.toString());
@@ -64,8 +68,10 @@ public class ChatServer extends WebSocketServer {
             playersId2.put("can", false);
             playersId2.put("me", clientsId.get(1));
             playersId2.put("enemy", clientsId.get(0));
-            //playersId2.put("enemyName", clientsName.get(0));
+            playersId2.put("enemyName", clientsName.get(0));
             playersId2.put("cards", cards);
+            playersId2.put("torn", 1);
+            playersId2.put("waiting", 0);
 
             WebSocket ws2 = getClientById(clientsId.get(1));
             ws2.send(playersId2.toString());
@@ -86,7 +92,8 @@ public class ChatServer extends WebSocketServer {
             }
         }
         //RandomizarLista
-        for (int i = 0; i < numList.size(); i++) {
+        int mida = numList.size()-1;
+        for (int i = 0; i <= mida; i++) {
             int num = r.nextInt(numList.size());
             result.add(numList.get(num));
             numList.remove(num);
@@ -118,10 +125,22 @@ public class ChatServer extends WebSocketServer {
             JSONObject objRequest = new JSONObject(message);
             String type = objRequest.getString("type");
 
-            if (type == "name") {
+            if (type.equals("name")) {
                 clientsName.add(objRequest.getString("value"));
-            } else if (type == "move") {
-                WebSocket wb = getClientById(objRequest.getString("enemy"));
+                createGame();
+
+            } else if (type.equals("torn")){
+                WebSocket wb = getClientById(objRequest.getString("enemyId"));
+                JSONObject ms = new JSONObject("{}");
+                ms.put("type", "torn");
+                ms.put("value", objRequest.getBoolean("value"));
+                wb.send(ms.toString());
+
+            } else if (type.equals("move")) {
+                WebSocket wb = getClientById(objRequest.getString("enemyId"));
+                JSONObject ms = new JSONObject(message);
+                ms.put("type", "move");
+                ms.put("value", objRequest.getInt("value"));
                 wb.send(message);
             }
 

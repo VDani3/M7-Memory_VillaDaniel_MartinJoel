@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:web_socket_channel/io.dart';
@@ -16,6 +17,7 @@ enum ConnectionStatus {
 }
 
 class AppData with ChangeNotifier {
+  Random r = new Random();
   String ip = "localhost";
   String port = "8888";
   String name = "Messi";
@@ -36,10 +38,6 @@ class AppData with ChangeNotifier {
     _getLocalIpAddress();
   }
 
-  void initialize() {
-    gameImages = List.generate(cardCount, (index) => interrogantePath);
-  }
-
   void _getLocalIpAddress() async {
     try {
       final List<NetworkInterface> interfaces = await NetworkInterface.list(
@@ -58,13 +56,14 @@ class AppData with ChangeNotifier {
 
   void connectToServer() async {
     connectionStatus = ConnectionStatus.connecting;
+    playersName.clear;
     notifyListeners();
 
     // Simulate connection delay
     await Future.delayed(const Duration(seconds: 1));
 
     _socketClient = IOWebSocketChannel.connect("ws://$ip:$port");
-    _socketClient?.sink.add('{"type": "name", "value": "${playersName[0]}"}');
+    _socketClient?.sink.add('{"type": "name", "value": "${name}"}');
     _socketClient!.stream.listen(
       (message) {
         final data = jsonDecode(message);
@@ -74,11 +73,20 @@ class AppData with ChangeNotifier {
             playersId.add(data['me']);
             playersId.add(data['enemy']);
             meActivePlayer = data['can'];
-            //playersName.add(data['enemyName']);
+            playersName.add(data['enemyName']);
             cardFotos = setGameImages(data['cards']);
+            torn = data['torn'];
+            waiting = data['waiting'];
             break;
           case 'name':
             playersName.add(data['name']);
+            break;
+          case 'torn':
+            changeRound();
+            meActivePlayer = data['value'];
+            break;
+          case 'move':
+            boldCard2Player(data['value']);
             break;
           default:
             messages += "Message from '${data['from']}': ${data['value']}\n";
@@ -229,26 +237,19 @@ class AppData with ChangeNotifier {
   }
 
   //Memory
-  List<String> playersName = ["h", "o"];
+  List<String> playersName = ["prueba1", "prueba2"];
   List<String> playersId = [];
   List<int> playersScore = [0, 0];
   int torn = 0;
   int waiting = 1;
   bool meActivePlayer = true;
+  List<String> defaultNames = ["Dani", "Joel", "Albert", "Akane", "Messi", "Mark", "Shawn", "Axel", "Iniesta", "Mari", "Villa", "Jose", "Jan", "Aura", "Marta"];
 
   //Lista de imagenes
   List<String>? gameImages; //Aqui se pondran las fotos actuales de cada casilla
-  //Las fotos que hay
-  List<String> cardFotos = [
-    'assets/images/iniesta.png',
-    'assets/images/villaIniesta.png',
-    'assets/images/villaIniestaKobe.png',
-    'assets/images/villaIniestaJapan.png',
-    'assets/images/iniestaCopa.png',
-    'assets/images/munyeco.jpg',
-    'assets/images/villaKobe.png',
-    'assets/images/villaSpain.png',
-  ];
+
+  //Las diferentes fotos que hay (luego estaran las cartas del juego, 2 de cada)
+  List<String> cardFotos = [];
   
 
   //Para ver si las dos primeras clicadas son iguales o no
@@ -268,6 +269,15 @@ class AppData with ChangeNotifier {
     waiting = 0 + c;
   }
 
+  void changeRoundMessage() {
+    final message = {
+      'type': 'torn',
+      'value': true,
+      'enemyId': playersId[1]
+    };
+    _socketClient!.sink.add(jsonEncode(message));
+  }
+
   List<String> setGameImages(List<dynamic> indexCards) {
     List<String> result = [];
 
@@ -275,7 +285,111 @@ class AppData with ChangeNotifier {
       int carta = indexCards[i] as int;
       result.add(cardFotos[carta]);
     }
-
     return result;
+  }
+
+  void boldCard(int index) {
+    if (meActivePlayer && gameImages![index] == interrogantePath) {
+      //voltearla
+      gameImages![index] = cardFotos[index];
+      pairCheck.add({index: cardFotos[index]});
+      moveMessage(index);
+
+      //Si coinciden las dos volteadas
+      if (pairCheck.length >= 2) {
+        meActivePlayer = false;
+        if (pairCheck[0].values.first == pairCheck[1].values.first) {
+          playersScore[torn] += 1;
+          pairCheck.clear();
+          meActivePlayer = true;
+        } else {
+          Future.delayed(Duration(milliseconds: 600), () {
+              gameImages![pairCheck[0].keys.first] =
+                  interrogantePath;
+              gameImages![pairCheck[1].keys.first] =
+                  interrogantePath;
+              pairCheck.clear();
+              changeRound();
+              meActivePlayer = false;
+              //Canvi de torn
+              changeRoundMessage();
+              notifyListeners();
+            });
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  void moveMessage(int index){
+    final msn = {
+      'type': 'move',
+      'value': index,
+      'enemyId': playersId[1]
+    };
+    _socketClient!.sink.add(jsonEncode(msn));
+  }
+
+  void boldCard2Player(int index) {
+    if (gameImages![index] == interrogantePath) {
+      //voltearla
+        gameImages![index] = cardFotos[index];
+        pairCheck.add({index: cardFotos[index]});
+
+      //Si coinciden las dos volteadas
+      if (pairCheck.length >= 2) {
+        meActivePlayer = false;
+        if (pairCheck[0].values.first == pairCheck[1].values.first) {
+          playersScore[torn] += 1;
+          pairCheck.clear();
+        } else {
+          Future.delayed(Duration(milliseconds: 600), () {
+              gameImages![pairCheck[0].keys.first] =
+                  interrogantePath;
+              gameImages![pairCheck[1].keys.first] =
+                  interrogantePath;
+              pairCheck.clear();
+              notifyListeners();
+            });
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  //Resetear la AppData para poder volver a jugar
+  void restart() {
+    playersName = ["prueba1", "prueba2"];
+    pairCheck = [];
+    playersScore = [0, 0];
+    playersId = [];
+    cardFotos = [
+      'assets/images/iniesta.png',
+      'assets/images/villaIniesta.png',
+      'assets/images/villaIniestaKobe.png',
+      'assets/images/villaIniestaJapan.png',
+      'assets/images/iniestaCopa.png',
+      'assets/images/munyeco.jpg',
+      'assets/images/villaKobe.png',
+      'assets/images/villaSpain.png',
+    ];
+    gameImages = [
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+      'assets/images/hidden.png',
+    ];
   }
 }
