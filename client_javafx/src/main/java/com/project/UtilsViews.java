@@ -1,4 +1,5 @@
 package com.project;
+
 import java.util.ArrayList;
 
 import javafx.animation.Interpolator;
@@ -19,7 +20,6 @@ public class UtilsViews {
 
     // Add one view to the list
     public static void addView(Class<?> cls, String name, String path) throws Exception {
-        
         boolean defaultView = false;
         FXMLLoader loader = new FXMLLoader(cls.getResource(path));
         Pane view = loader.load();
