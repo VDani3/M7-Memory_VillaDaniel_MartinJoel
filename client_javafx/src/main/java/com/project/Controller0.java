@@ -23,13 +23,19 @@ public class Controller0 {
     private List<String> imageNum = new ArrayList<>();
     private List<String> hiddenList = new ArrayList<>();
 
+    private AppData appData;
+
     @FXML
     private void sortir(ActionEvent event) {
+        UtilsViews.setViewAnimating("ViewLogin");
+        appData.disconnectFromServer();
         System.out.println("Salir");
     }
 
     @FXML
     private void initialize() {
+        appData = AppData.getInstance();
+
         imageNum = generateImageNum();
         hiddenList = generateHiddenList();
         
@@ -74,7 +80,7 @@ public class Controller0 {
             System.out.println("aaaa");
             return;
         } 
-        System.out.println(hiddenList);
+        //System.out.println(hiddenList);
         
         ImageView clickedCard = (ImageView) event.getSource();
         int clickedCardID = Integer.valueOf(clickedCard.getId());

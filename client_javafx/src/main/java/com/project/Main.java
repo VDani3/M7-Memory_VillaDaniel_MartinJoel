@@ -18,8 +18,9 @@ public class Main extends Application {
         final int windowHeight = 350;
 
         UtilsViews.parentContainer.setStyle("-fx-font: 14 arial;");
-        UtilsViews.addView(getClass(), "View0", "/assets/view0.fxml");
         UtilsViews.addView(getClass(), "ViewLogin", "/assets/viewLogin.fxml");
+        UtilsViews.addView(getClass(), "ViewConnecting", "/assets/viewConnecting.fxml");
+        UtilsViews.addView(getClass(), "View0", "/assets/view0.fxml");
 
         Scene scene = new Scene(UtilsViews.parentContainer);
         

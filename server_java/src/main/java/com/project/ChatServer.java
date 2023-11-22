@@ -38,6 +38,7 @@ public class ChatServer extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         // Quan un client es connecta
+        System.out.println("Client connected");
         String clientId = getConnectionId(conn);
         clientsId.add(clientId);
     }
