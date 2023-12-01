@@ -7,7 +7,7 @@ class LayoutDisconnecting extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text("WebSockets Client"),
+        middle: Text("Disconecting.."),
       ),
       child: ListView(
         padding: const EdgeInsets.all(20),
@@ -17,7 +17,7 @@ class LayoutDisconnecting extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Disconnecting...",
+                "Sortint de la partida...",
                 style: TextStyle(
                   fontSize: 14,
                   color: Color.fromRGBO(200, 0, 0, 1),

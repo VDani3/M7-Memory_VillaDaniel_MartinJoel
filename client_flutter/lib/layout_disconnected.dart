@@ -1,4 +1,5 @@
 import 'package:animated_rotation/animated_rotation.dart' as animated_rotation;
+import 'package:client_flutter/layout_ranking.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'app_data.dart';
@@ -45,8 +46,18 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
     _ipController.text = appData.ip;
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
+      navigationBar: CupertinoNavigationBar(
         middle: Text("Lobby"),
+        leading: GestureDetector(
+          child: Container(
+            height: 44,
+            width: 44,
+            child: Icon(CupertinoIcons.chart_bar_alt_fill, size: 24,)
+          ),
+          onTap: () {
+            Navigator.of(context).push(CupertinoPageRoute(builder: ((context) => Ranking())));
+          },
+        ),
       ),
       child: ListView(
         padding: const EdgeInsets.all(20),
