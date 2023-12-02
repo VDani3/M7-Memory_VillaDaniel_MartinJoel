@@ -54,7 +54,8 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
             width: 44,
             child: Icon(CupertinoIcons.chart_bar_alt_fill, size: 24,)
           ),
-          onTap: () {
+          onTap: () async {
+            appData.ranking = await appData.readFile("rankingFile.txt") as List<String>;
             Navigator.of(context).push(CupertinoPageRoute(builder: ((context) => Ranking())));
           },
         ),
@@ -100,7 +101,8 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
               width: 96,
               height: 32,
               child: CupertinoButton.filled(
-                onPressed: () {
+                onPressed: () async {
+                  appData.ranking = await appData.readFile("rankingFile.txt") as List<String>;
                   appData.restart();
                   appData.ip = _ipController.text;
                   appData.port = _portController.text;

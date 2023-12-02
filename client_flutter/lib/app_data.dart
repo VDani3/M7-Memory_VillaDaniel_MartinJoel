@@ -208,15 +208,20 @@ class AppData with ChangeNotifier {
 
   */
 
-  Future<void> saveFile(String fileName, Map<String, dynamic> data) async {
+  Future<void> saveFile(String fileName, List<String> data) async {
     file_saving = true;
     notifyListeners();
+    String res = "";
 
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$fileName');
-      final jsonData = jsonEncode(data);
-      await file.writeAsString(jsonData);
+
+      for (String f in data) {
+        res += f+";";
+      }
+
+      await file.writeAsString(res);
     } catch (e) {
       // ignore: avoid_print
       print("Error saving file: $e");
@@ -233,16 +238,26 @@ class AppData with ChangeNotifier {
 
   */
 
-  Future<Map<String, dynamic>?> readFile(String fileName) async {
+  Future<List<String>?> readFile(String fileName) async {
     file_loading = true;
     notifyListeners();
+    List<String> data = [];
 
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$fileName');
       if (await file.exists()) {
-        final jsonData = await file.readAsString();
-        final data = jsonDecode(jsonData) as Map<String, dynamic>;
+        String infoFile = await file.readAsString();
+        String record = "";
+        for (int i=0; i<infoFile.length; i++) {
+          if (infoFile[i] == ';') {
+            data.add(record);
+            record = "";
+          } else {
+            record += infoFile[i];
+          }
+        }
+        
         return data;
       } else {
         // ignore: avoid_print

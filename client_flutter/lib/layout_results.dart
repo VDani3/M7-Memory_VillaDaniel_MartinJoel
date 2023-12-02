@@ -20,6 +20,7 @@ class Results extends StatelessWidget {
             child: Icon(CupertinoIcons.home, size: 24,)
           ),
           onTap: () {
+            appData.saveFile("rankingFile.txt", appData.ranking);
             appData.goToLobby();
           },
         ),
