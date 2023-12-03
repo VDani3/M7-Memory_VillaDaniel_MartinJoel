@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'app_data.dart';
-import 'widget_selectable_list.dart';
 
 class LayoutConnected extends StatefulWidget {
   const LayoutConnected({Key? key}) : super(key: key);

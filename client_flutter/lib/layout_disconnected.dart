@@ -102,7 +102,6 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
               height: 32,
               child: CupertinoButton.filled(
                 onPressed: () async {
-                  appData.ranking = await appData.readFile("rankingFile.txt") as List<String>;
                   appData.restart();
                   appData.ip = _ipController.text;
                   appData.port = _portController.text;
@@ -110,6 +109,7 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
                   appData.playersName = [];
                   appData.playersName.add(_name.text);
                   appData.connectToServer();
+                  appData.ranking = await appData.readFile("rankingFile.txt") as List<String>;
                 },
                 padding: EdgeInsets.zero,
                 child: const Text(

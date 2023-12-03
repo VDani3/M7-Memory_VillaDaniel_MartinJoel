@@ -150,50 +150,6 @@ class AppData with ChangeNotifier {
     _socketClient!.sink.close();
   }
 
-  selectClient(int index) {
-    if (selectedClientIndex != index) {
-      selectedClientIndex = index;
-      selectedClient = clients[index];
-    } else {
-      selectedClientIndex = null;
-      selectedClient = "";
-    }
-    notifyListeners();
-  }
-
-  refreshClientsList() {
-    final message = {
-      'type': 'list',
-    };
-    _socketClient!.sink.add(jsonEncode(message));
-  }
-
-  send(String msg) {
-    if (selectedClientIndex == null) {
-      broadcastMessage(msg);
-    } else {
-      privateMessage(msg);
-    }
-  }
-
-  broadcastMessage(String msg) {
-    final message = {
-      'type': 'broadcast',
-      'value': msg,
-    };
-    _socketClient!.sink.add(jsonEncode(message));
-  }
-
-  privateMessage(String msg) {
-    if (selectedClient == "") return;
-    final message = {
-      'type': 'private',
-      'value': msg,
-      'destination': selectedClient,
-    };
-    _socketClient!.sink.add(jsonEncode(message));
-  }
-
   /*
   * Save file example:
 
@@ -468,6 +424,7 @@ class AppData with ChangeNotifier {
         winnerPoints = playersScore[1];
         ranking.add("${playersName[1]} ha guanyat a ${playersName[0]} per ${playersScore[1]}-${playersScore[0]}");
       } else if (playersScore[0] == playersScore[1]) {
+        winnerPoints = -1;
         ranking.add("${playersName[1]} y ${playersName[0]} han empatat amb ${playersScore[1]}-${playersScore[0]}");
       }
       finished = true;
