@@ -37,6 +37,7 @@ public class Controller0 {
     @FXML
     private void initialize() {
         appData = AppData.getInstance();
+        appData.c0 = this;
 
         hiddenList = generateHiddenList();
         
@@ -79,7 +80,7 @@ public class Controller0 {
 
             hiddenList.set(clickedCardID, appData.getCards().get(clickedCardID).toString());
 
-            appData.getConnexion().send("{ \"type\": \"name\", \"value\": \"" + clickedCardID + "\", \"enemyId\": \"" + appData.getEnemyId() + "\"}");
+            appData.sendCardMessage("{ \"type\": \"move\", \"value\":" + clickedCardID + ", \"enemyId\": \"" + appData.getEnemyId() + "\"}");
         } else {
             return;
         }
@@ -108,12 +109,10 @@ public class Controller0 {
                 hiddenList.set(Integer.valueOf(firstCard.getId()), "hidden");
 
                 new Thread(() -> {
-                    try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); } 
+                    try { Thread.sleep(600); } catch (InterruptedException e) { e.printStackTrace(); } 
 
                     Image img = new Image(getClass().getResource("/images/card.png").toString());
                     firstCard.setImage(img);
-
-                    try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); } 
 
                     clickedCard.setImage(img);
 
@@ -129,15 +128,12 @@ public class Controller0 {
     }
 
     public void enemyMove(int valueMove) {
-        if (!canSelect || !appData.getMyTurn()){
-            System.out.println("aaaa");
-            return;
-        } 
         
         ImageView clickedCard = (ImageView) imagesList.get(valueMove);
         int clickedCardID = Integer.valueOf(clickedCard.getId());
 
         if (hiddenList.get(clickedCardID).equals("hidden")) {
+            
             Image image = new Image(getClass().getResource("/images/card"+appData.getCards().get(clickedCardID)+".png").toString());
             clickedCard.setImage(image);
 
@@ -172,12 +168,10 @@ public class Controller0 {
                 hiddenList.set(Integer.valueOf(firstCard.getId()), "hidden");
 
                 new Thread(() -> {
-                    try { Thread.sleep(1000); } catch (InterruptedException e) { e.printStackTrace(); } 
+                    try { Thread.sleep(600); } catch (InterruptedException e) { e.printStackTrace(); } 
 
                     Image img = new Image(getClass().getResource("/images/card.png").toString());
                     firstCard.setImage(img);
-
-                    try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); } 
 
                     clickedCard.setImage(img);
 

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import javafx.application.Platform;
 
 public class AppData {
+    Controller0 c0;
     private static final AppData INSTANCE = new AppData();
     private WebSocketClient wSClient;
     private String ip = "localhost";
@@ -103,8 +104,7 @@ public class AppData {
                             break;
                         case "move":
                             int valueCard = data.getInt("value");
-
-                            
+                            c0.enemyMove(valueCard);
 
                             break;
                         case "torn":
@@ -145,6 +145,10 @@ public class AppData {
             System.out.println("Error: " + uri + " no es una dirección URI de WebSocket válida");
         }
 
+    }
+
+    public void sendCardMessage(String msn){
+        wSClient.send(msn);
     }
 
     public void disconnectFromServer() {
