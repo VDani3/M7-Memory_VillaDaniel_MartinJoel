@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javafx.application.Platform;
+import javafx.scene.paint.Color;
 
 public class AppData {
     Controller0 c0;
@@ -100,6 +101,19 @@ public class AppData {
                             System.out.println(cards);
                             System.out.println("-|-|-|-|-|-|-|-|-|-");
 
+                            Platform.runLater(() -> {
+                                c0.labelUser.setText("You: " + name );
+                                c0.labelRival.setText("Rival: " + enemyName);
+
+                                if (myTurn){
+                                    c0.labelUser.setTextFill(Color.GREEN);
+                                    c0.labelRival.setTextFill(Color.RED);
+                                } else {
+                                    c0.labelRival.setTextFill(Color.GREEN);
+                                    c0.labelUser.setTextFill(Color.RED);
+                                }
+                            });
+
                             //  { "type": "id", "can": true, "me": "001", "enemy": "002", "enemyName": PP, "cards": [], "torn": 0, "waiting": 1}
                             break;
                         case "move":
@@ -109,10 +123,21 @@ public class AppData {
                             break;
                         case "torn":
                             setMyTurn(data.getBoolean("value"));
+
+                            Platform.runLater(() -> {
+                                if (myTurn){
+                                    c0.labelUser.setTextFill(Color.GREEN);
+                                    c0.labelRival.setTextFill(Color.RED);
+                                } else {
+                                    c0.labelRival.setTextFill(Color.GREEN);
+                                    c0.labelUser.setTextFill(Color.RED);
+                                }
+                            });
+                            
                             break;
                         case "disconnected":
                             System.out.println("L'enemic s'ha desconectat");
-                            UtilsViews.setViewAnimating("ViewLogin");
+                            UtilsViews.setViewAnimating("ViewWinner");
                             connectionStatus = ConnectionStatus.DISCONNECTED;
                             
                             break;
@@ -128,7 +153,7 @@ public class AppData {
                     connectionStatus = ConnectionStatus.DISCONNECTED;
                     System.out.println("Disconnected from: " + getURI());
                     Platform.runLater(() -> {
-                        UtilsViews.setViewAnimating("ViewLogin");
+                        UtilsViews.setViewAnimating("ViewWinner");
                     });
                 }
 
