@@ -1,14 +1,15 @@
 
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-Widget scorePanel(String titulo, String score, bool playing) {
+Widget scorePanel(String titulo, String score, bool playing, bool player1) {
   bool activePlayer = playing;
 
   return Container(
       constraints: BoxConstraints(
         minWidth: 100,
-        maxWidth: 500.0, 
+        maxWidth: 300.0, 
       ),
       margin: EdgeInsets.all(8),
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 15),
@@ -24,7 +25,8 @@ Widget scorePanel(String titulo, String score, bool playing) {
         children: [
           Text('$titulo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),),
           SizedBox(height: 6,),
-          Text('$score')
+          Text('$score'),
+          Text('You', style: TextStyle(color: player1 ? Colors.black38 : Colors.transparent, fontSize: 10)),
         ],
       ),
     );

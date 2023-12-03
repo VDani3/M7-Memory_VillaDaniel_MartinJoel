@@ -1,4 +1,5 @@
 import 'package:animated_rotation/animated_rotation.dart' as animated_rotation;
+import 'package:client_flutter/layout_ranking.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'app_data.dart';
@@ -45,8 +46,19 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
     _ipController.text = appData.ip;
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
+      navigationBar: CupertinoNavigationBar(
         middle: Text("Lobby"),
+        leading: GestureDetector(
+          child: Container(
+            height: 44,
+            width: 44,
+            child: Icon(CupertinoIcons.chart_bar_alt_fill, size: 24,)
+          ),
+          onTap: () async {
+            appData.ranking = await appData.readFile("rankingFile.txt") as List<String>;
+            Navigator.of(context).push(CupertinoPageRoute(builder: ((context) => Ranking())));
+          },
+        ),
       ),
       child: ListView(
         padding: const EdgeInsets.all(20),
@@ -89,7 +101,7 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
               width: 96,
               height: 32,
               child: CupertinoButton.filled(
-                onPressed: () {
+                onPressed: () async {
                   appData.restart();
                   appData.ip = _ipController.text;
                   appData.port = _portController.text;
@@ -97,6 +109,7 @@ class _LayoutDisconnectedState extends State<LayoutDisconnected> {
                   appData.playersName = [];
                   appData.playersName.add(_name.text);
                   appData.connectToServer();
+                  appData.ranking = await appData.readFile("rankingFile.txt") as List<String>;
                 },
                 padding: EdgeInsets.zero,
                 child: const Text(

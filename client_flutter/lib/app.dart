@@ -1,3 +1,4 @@
+import 'package:client_flutter/layout_results.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'layout_connected.dart';
@@ -28,6 +29,8 @@ class AppState extends State<App> {
         return const LayoutConnecting();
       case ConnectionStatus.connected:
         return const LayoutConnected();
+      case ConnectionStatus.result:
+        return const Results();
       default:
         return const LayoutDisconnected();
     }

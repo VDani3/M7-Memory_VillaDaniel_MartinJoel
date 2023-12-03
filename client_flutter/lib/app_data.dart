@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:web_socket_channel/io.dart';
 
 // Access appData globaly with:
@@ -14,6 +16,7 @@ enum ConnectionStatus {
   disconnecting,
   connecting,
   connected,
+  result,
 }
 
 class AppData with ChangeNotifier {
@@ -31,6 +34,7 @@ class AppData with ChangeNotifier {
   int? selectedClientIndex;
   String messages = "";
 
+  bool finished = false;
   bool file_saving = false;
   bool file_loading = false;
 
@@ -65,7 +69,7 @@ class AppData with ChangeNotifier {
     _socketClient = IOWebSocketChannel.connect("ws://$ip:$port");
     _socketClient?.sink.add('{"type": "name", "value": "${name}"}');
     _socketClient!.stream.listen(
-      (message) {
+      (message) async {
         final data = jsonDecode(message);
 
         switch (data['type']) {
@@ -88,11 +92,23 @@ class AppData with ChangeNotifier {
           case 'move':
             boldCard2Player(data['value']);
             break;
+          case 'disconnected':
+            if (playersId.contains(data['id']) && finished == false) {
+              winnerPoints = 0;
+              finished = true;
+              winner = playersName[0];
+              ranking.add("${playersName[0]} ha guanyat a ${playersName[1]} perque ${playersName[1]} s'ha desconectat");
+              //Captura del tablero
+              tableroResult = await screenshotController.capture();
+              _socketClient!.sink.close();
+              connectionStatus = ConnectionStatus.result;
+              notifyListeners();
+            }
           default:
             messages += "Message from '${data['from']}': ${data['value']}\n";
             break;
         }
-        if (connectionStatus != ConnectionStatus.connected && playersId != 2) {
+        if (connectionStatus != ConnectionStatus.connected && playersId != 2 && !finished) {
           connectionStatus = ConnectionStatus.connected;
         }
 
@@ -108,6 +124,9 @@ class AppData with ChangeNotifier {
       },
       onDone: () {
         connectionStatus = ConnectionStatus.disconnected;
+        if (finished) {
+          connectionStatus = ConnectionStatus.result;
+        }
         mySocketId = "";
         selectedClient = "";
         clients = [];
@@ -121,54 +140,14 @@ class AppData with ChangeNotifier {
     connectionStatus = ConnectionStatus.disconnecting;
     notifyListeners();
 
+    if (finished == false) {
+      ranking.add("${playersName[1]} ha guanyat a ${playersName[0]} perque ${playersName[0]} s'ha desconectat");
+    }
+
     // Simulate connection delay
     await Future.delayed(const Duration(seconds: 1));
 
     _socketClient!.sink.close();
-  }
-
-  selectClient(int index) {
-    if (selectedClientIndex != index) {
-      selectedClientIndex = index;
-      selectedClient = clients[index];
-    } else {
-      selectedClientIndex = null;
-      selectedClient = "";
-    }
-    notifyListeners();
-  }
-
-  refreshClientsList() {
-    final message = {
-      'type': 'list',
-    };
-    _socketClient!.sink.add(jsonEncode(message));
-  }
-
-  send(String msg) {
-    if (selectedClientIndex == null) {
-      broadcastMessage(msg);
-    } else {
-      privateMessage(msg);
-    }
-  }
-
-  broadcastMessage(String msg) {
-    final message = {
-      'type': 'broadcast',
-      'value': msg,
-    };
-    _socketClient!.sink.add(jsonEncode(message));
-  }
-
-  privateMessage(String msg) {
-    if (selectedClient == "") return;
-    final message = {
-      'type': 'private',
-      'value': msg,
-      'destination': selectedClient,
-    };
-    _socketClient!.sink.add(jsonEncode(message));
   }
 
   /*
@@ -185,15 +164,20 @@ class AppData with ChangeNotifier {
 
   */
 
-  Future<void> saveFile(String fileName, Map<String, dynamic> data) async {
+  Future<void> saveFile(String fileName, List<String> data) async {
     file_saving = true;
     notifyListeners();
+    String res = "";
 
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$fileName');
-      final jsonData = jsonEncode(data);
-      await file.writeAsString(jsonData);
+
+      for (String f in data) {
+        res += f+";";
+      }
+
+      await file.writeAsString(res);
     } catch (e) {
       // ignore: avoid_print
       print("Error saving file: $e");
@@ -210,16 +194,26 @@ class AppData with ChangeNotifier {
 
   */
 
-  Future<Map<String, dynamic>?> readFile(String fileName) async {
+  Future<List<String>?> readFile(String fileName) async {
     file_loading = true;
     notifyListeners();
+    List<String> data = [];
 
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$fileName');
       if (await file.exists()) {
-        final jsonData = await file.readAsString();
-        final data = jsonDecode(jsonData) as Map<String, dynamic>;
+        String infoFile = await file.readAsString();
+        String record = "";
+        for (int i=0; i<infoFile.length; i++) {
+          if (infoFile[i] == ';') {
+            data.add(record);
+            record = "";
+          } else {
+            record += infoFile[i];
+          }
+        }
+        
         return data;
       } else {
         // ignore: avoid_print
@@ -237,6 +231,8 @@ class AppData with ChangeNotifier {
   }
 
   //Memory
+  String winner = "";
+  int winnerPoints = 0;
   List<String> playersName = ["prueba1", "prueba2"];
   List<String> playersId = [];
   List<int> playersScore = [0, 0];
@@ -244,6 +240,10 @@ class AppData with ChangeNotifier {
   int waiting = 1;
   bool meActivePlayer = true;
   List<String> defaultNames = ["Dani", "Joel", "Albert", "Akane", "Messi", "Mark", "Shawn", "Axel", "Iniesta", "Mari", "Villa", "Jose", "Jan", "Aura", "Marta"];
+  ScreenshotController screenshotController = ScreenshotController();
+  Uint8List? tableroResult;
+  Color textResult = Colors.black;
+  List<String> ranking = [];   // WinnerName    Oponent    1-0
 
   //Lista de imagenes
   List<String>? gameImages; //Aqui se pondran las fotos actuales de cada casilla
@@ -300,6 +300,7 @@ class AppData with ChangeNotifier {
         meActivePlayer = false;
         if (pairCheck[0].values.first == pairCheck[1].values.first) {
           playersScore[torn] += 1;
+          checkWinner();
           pairCheck.clear();
           meActivePlayer = true;
         } else {
@@ -341,6 +342,7 @@ class AppData with ChangeNotifier {
         meActivePlayer = false;
         if (pairCheck[0].values.first == pairCheck[1].values.first) {
           playersScore[torn] += 1;
+          checkWinner();
           pairCheck.clear();
         } else {
           Future.delayed(Duration(milliseconds: 600), () {
@@ -359,6 +361,9 @@ class AppData with ChangeNotifier {
 
   //Resetear la AppData para poder volver a jugar
   void restart() {
+    winnerPoints = 0;
+    finished = false;
+    winner = "";
     playersName = ["prueba1", "prueba2"];
     pairCheck = [];
     playersScore = [0, 0];
@@ -391,5 +396,41 @@ class AppData with ChangeNotifier {
       'assets/images/hidden.png',
       'assets/images/hidden.png',
     ];
+    textResult = Colors.black;
+  }
+
+  void goToLobby() {
+    connectionStatus = ConnectionStatus.disconnected;
+    notifyListeners();
+  }
+
+  Future<void> checkWinner() async {
+    int num = 0;
+    for (int cn = 0; cn < gameImages!.length; cn++) {
+      if (gameImages![cn] != interrogantePath) {
+        num +=1;
+      }
+    }
+    if (num == cardCount) {
+      //Captura del tablero
+      tableroResult = await screenshotController.capture();
+
+      if (playersScore[0] > playersScore[1]) {
+        winner = playersName[0];
+        winnerPoints = playersScore[0];
+        ranking.add("${playersName[0]} ha guanyat a ${playersName[1]} per ${playersScore[0]}-${playersScore[1]}");
+      } else if (playersScore[0] < playersScore[1]) {
+        winner = playersName[1];
+        winnerPoints = playersScore[1];
+        ranking.add("${playersName[1]} ha guanyat a ${playersName[0]} per ${playersScore[1]}-${playersScore[0]}");
+      } else if (playersScore[0] == playersScore[1]) {
+        winnerPoints = -1;
+        ranking.add("${playersName[1]} y ${playersName[0]} han empatat amb ${playersScore[1]}-${playersScore[0]}");
+      }
+      finished = true;
+      _socketClient!.sink.close();
+      connectionStatus = ConnectionStatus.result;
+    }
+    notifyListeners();
   }
 }
