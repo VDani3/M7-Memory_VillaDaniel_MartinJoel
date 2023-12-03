@@ -1,5 +1,6 @@
 package com.project;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -8,6 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +57,9 @@ public class Controller0 {
                 boardPane.add(stackPane, row, col);
             }
         }
+
+        labelRival.setText("Rival: ");
+        labelUser.setText("You: ");
     }
 
     private List<String> generateHiddenList() {
@@ -93,10 +98,10 @@ public class Controller0 {
                 System.out.println("Emparejadas!");
                 appData.setUserPoints(appData.getUserPoints()+1);
 
-                new Thread(() -> {
-                    labelRival.setText("Rival: "+ appData.getEnemyName() + "Points: " + appData.getEnemyPoints());
-                    labelUser.setText("You: " + appData.getName() + "Points: " + appData.getUserPoints());
-                }).start();
+                Platform.runLater(() -> {
+                    labelRival.setText("Rival: "+ appData.getEnemyName() + " Points: " + appData.getEnemyPoints());
+                    labelUser.setText("You: " + appData.getName() + " Points: " + appData.getUserPoints());
+                });
                 
 
                 firstCard = null;
@@ -121,6 +126,15 @@ public class Controller0 {
                 }).start();
 
                 appData.setMyTurn(false);
+                Platform.runLater(() -> {
+                    if (appData.getMyTurn()){
+                        labelUser.setTextFill(Color.GREEN);
+                        labelRival.setTextFill(Color.RED);
+                    } else {
+                        labelRival.setTextFill(Color.GREEN);
+                        labelUser.setTextFill(Color.RED);
+                    }
+                });
                 appData.getConnexion().send("{ \"type\": \"torn\", \"value\": true, \"enemyId\": \"" + appData.getEnemyId() + "\"}");
             }
         }
@@ -153,10 +167,10 @@ public class Controller0 {
 
                 appData.setEnemyPoints(appData.getEnemyPoints()+1);
 
-                new Thread(() -> {
-                    labelRival.setText("Rival: "+ appData.getEnemyName() + "Points: " + appData.getEnemyPoints());
-                    labelUser.setText("You: " + appData.getName() + "Points: " + appData.getUserPoints());
-                }).start();
+                Platform.runLater(() -> {
+                    labelRival.setText("Rival: "+ appData.getEnemyName() + " Points: " + appData.getEnemyPoints());
+                    labelUser.setText("You: " + appData.getName() + " Points: " + appData.getUserPoints());
+                });
 
                 firstCard = null;
             } else {
@@ -179,7 +193,6 @@ public class Controller0 {
                     canSelect = true; 
                 }).start();
 
-                appData.setMyTurn(false);
                 appData.getConnexion().send("{ \"type\": \"torn\", \"value\": true, \"enemyId\": \"" + appData.getEnemyId() + "\"}");
             }
         }
@@ -187,6 +200,13 @@ public class Controller0 {
     }
 
     private void checkWinner() {
-        // TODO
+        
+        if (appData.getCards().equals(imagesList)) {
+            Platform.runLater(() -> {
+                UtilsViews.setViewAnimating("ViewWinner");
+            });
+            appData.getConnexion().close();
+        }
+
     }
 }
