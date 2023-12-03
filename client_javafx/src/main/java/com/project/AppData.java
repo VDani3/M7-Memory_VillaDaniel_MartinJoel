@@ -2,11 +2,14 @@ package com.project;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javafx.application.Platform;
@@ -16,8 +19,16 @@ public class AppData {
     private WebSocketClient wSClient;
     private String ip = "localhost";
     private String port = "8888";
-    private ConnectionStatus connectionStatus = ConnectionStatus.DISCONNECTED;
+    public ConnectionStatus connectionStatus = ConnectionStatus.DISCONNECTED;
     private String name = "Default";
+    // Dades partida
+    private boolean myTurn; 
+    private String enemyId;
+    private String enemyName;
+    private ArrayList<Integer> cards;
+    private int enemyPoints;
+    private int userPoints;
+
     
     public enum ConnectionStatus {
         DISCONNECTED, DISCONNECTING, CONNECTING, CONNECTED
@@ -57,16 +68,53 @@ public class AppData {
                     String type = data.getString("type");
                     switch (type) {
                         case "id":
-                                try {
-                                    Thread.sleep(500);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            Platform.runLater(() -> {
-                                UtilsViews.setViewAnimating("View0");
-                            });
+                            try {
+                                Thread.sleep(500);
+                                Platform.runLater(() -> {
+                                    UtilsViews.setViewAnimating("View0");
+                                });
+                                
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            setMyTurn(data.getBoolean("can"));
+                            setEnemyId(data.getString("enemy"));
+                            setEnemyName(data.getString("enemyName"));
+
+                            // cards
+                            JSONArray cardsArray = data.getJSONArray("cards");
+            
+                            // Convert JSONArray to ArrayList<String>
+                            ArrayList<Integer> cardsList = new ArrayList<>();
+                            for (int i = 0; i < cardsArray.length(); i++) {
+                                cardsList.add(cardsArray.getInt(i));
+                            }
+
+                            setCards(cardsList);
+
+                            System.out.println("-|-|-|-|-|-|-|-|-|-");
+                            System.out.println(myTurn);
+                            System.out.println(enemyId);
+                            System.out.println(enemyName);
+                            System.out.println(cards);
+                            System.out.println("-|-|-|-|-|-|-|-|-|-");
+
+                            //  { "type": "id", "can": true, "me": "001", "enemy": "002", "enemyName": PP, "cards": [], "torn": 0, "waiting": 1}
+                            break;
+                        case "move":
+                            int valueCard = data.getInt("value");
+
                             
-                            System.out.println("O_O");
+
+                            break;
+                        case "torn":
+                            setMyTurn(data.getBoolean("value"));
+                            break;
+                        case "disconnected":
+                            System.out.println("L'enemic s'ha desconectat");
+                            UtilsViews.setViewAnimating("ViewLogin");
+                            connectionStatus = ConnectionStatus.DISCONNECTED;
+                            
                             break;
                         default:
                             System.out.println("Message: " + message);
@@ -90,7 +138,7 @@ public class AppData {
                 }
             };
 
-            wSClient.connect();
+                wSClient.connect();
 
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -104,6 +152,13 @@ public class AppData {
             connectionStatus = ConnectionStatus.DISCONNECTING;
             wSClient.close();
         }
+    }
+
+    public WebSocketClient getConnexion() {
+        if (wSClient != null && wSClient.isOpen()) {
+            return wSClient;
+        }
+        return null;
     }
 
     public String getIp() {
@@ -129,4 +184,47 @@ public class AppData {
     public String setName(String name) {
         return this.name = name;
     }
+    
+    public boolean getMyTurn(){
+        return myTurn;
+    }
+    public boolean setMyTurn(boolean myTurn){
+        return this.myTurn = myTurn;
+    }
+
+    public String getEnemyId(){
+        return enemyId;
+    }
+    public String setEnemyId(String enemyId){
+        return this.enemyId = enemyId;
+    }
+
+    public String getEnemyName(){
+        return enemyName;
+    }
+    public String setEnemyName(String enemyName){
+        return this.enemyName = enemyName;
+    }
+
+    public List<Integer> getCards(){
+        return cards;
+    }
+    public ArrayList<Integer> setCards(ArrayList<Integer> cardsList){
+        return this.cards = cardsList;
+    }
+
+    public int getEnemyPoints(){
+        return enemyPoints;
+    }
+    public int setEnemyPoints(int enemyPoints){
+        return this.enemyPoints = enemyPoints;
+    }
+
+    public int getUserPoints(){
+        return userPoints;
+    }
+    public int setUserPoints(int userPoints){
+        return this.userPoints = userPoints;
+    }
+
 }
