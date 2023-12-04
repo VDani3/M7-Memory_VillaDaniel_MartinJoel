@@ -30,8 +30,8 @@
       </AnchorPane>
       <AnchorPane layoutY="51.0" prefHeight="66.0" prefWidth="750.0" AnchorPane.bottomAnchor="390.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
          <children>
-            <Label fx:id="labelTurn" layoutX="14.0" layoutY="22.0" text="Torn de " AnchorPane.bottomAnchor="21.0" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="21.0" />
-            <Label fx:id="labelWait" layoutX="708.0" layoutY="22.0" text="En espera " AnchorPane.bottomAnchor="21.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="21.0" />
+            <Label fx:id="labelRival" layoutX="14.0" layoutY="22.0" text="Torn de " AnchorPane.bottomAnchor="21.0" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="21.0" />
+            <Label fx:id="labelUser" layoutX="708.0" layoutY="22.0" text="En espera " AnchorPane.bottomAnchor="21.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="21.0" />
          </children>
       </AnchorPane>
       <GridPane fx:id="boardPane" layoutY="110.0" prefHeight="390.0" prefWidth="750.0" AnchorPane.bottomAnchor="-0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
